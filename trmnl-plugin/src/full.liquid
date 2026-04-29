@@ -1,327 +1,315 @@
-<!doctype html>
-<html>
-  <head>
-    <link rel="stylesheet" href="https://usetrmnl.com/css/latest/plugins.css">
-    <script src="https://usetrmnl.com/js/latest/plugins.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;350;375;400;450;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout */
+  .trmnl .view .layout { flex: 1; }
+  .trmnl .view--quadrant .title_bar,
+  .trmnl .view--half_horizontal::before { background: none; }
 
-    <style>
-      /* Layout */
-      .trmnl .view .layout { flex: 1; }
-      .trmnl .view--quadrant .title_bar,
-      .trmnl .view--half_horizontal::before { background: none; }
-  
-      #root {
-        font-family: 'Inter', 'NicoClean', sans-serif;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        position: relative;
-        overflow: hidden;
-      }
-      #root:has(.pills-container--left) { flex-direction: row; }
-      #root:has(.pills-container--right) { flex-direction: row-reverse; }
-      #root:has(.pills-container--top) { flex-direction: column; }
-      #root:has(.pills-container--bottom) { flex-direction: column-reverse; }
+  #root {
+    font-family: 'Inter', 'NicoClean', sans-serif;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
+  #root:has(.pills-container--left) { flex-direction: row; }
+  #root:has(.pills-container--right) { flex-direction: row-reverse; }
+  #root:has(.pills-container--top) { flex-direction: column; }
+  #root:has(.pills-container--bottom) { flex-direction: column-reverse; }
 
-      .sections-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-      }
+  .sections-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
 
-      /* Pills */
-      .pills-container,
-      .pills-container--top { margin-bottom: 10px; }
-      .pills-container--bottom { margin-top: 10px; }
-      .pills-container--left { margin-right: 10px; }
-      .pills-container--right { margin-left: 10px; }
+  /* Pills */
+  .pills-container,
+  .pills-container--top { margin-bottom: 10px; }
+  .pills-container--bottom { margin-top: 10px; }
+  .pills-container--left { margin-right: 10px; }
+  .pills-container--right { margin-left: 10px; }
 
-      .pill-component {
-        border: 2px solid black;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 5px;
-      }
-      
-      .pills-container--left .pill-component,
-      .pills-container--right .pill-component {
-        writing-mode: vertical-lr;
-        transform: rotate(180deg);
-      }
-      
-      .app-root.list-layout .pill-component { border: none; }
+  .pill-component {
+    border: 2px solid black;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 5px;
+  }
 
-      /* Entity common styles */
-      .entity-name,
-      .entity-value {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .entity-value { max-width: 155px; }
-      /* Entity groups */
-      .entity-group {
-        border: 2px solid black;
-        border-radius: 16px;
-        padding: 16px;
-        margin-top: 15px;
-        background: #fff;
-        position: relative;
-      }
-      
-      .group-header {
-        position: absolute;
-        background: #fff;
-        padding: 0 4px;
-        z-index: 2;
-      }
-      .group-header span { color: inherit; }
+  .pills-container--left .pill-component,
+  .pills-container--right .pill-component {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
 
-      .groups-layout .group-header {
-        top: 0;
-        transform: translateY(-50%);
-        line-height: 1;
-      }
+  .app-root.list-layout .pill-component { border: none; }
 
-      .group-content {
-        margin-top: 8px;
-        gap: 20px;
-      }
+  /* Entity common styles */
+  .entity-name,
+  .entity-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entity-value { max-width: 155px; }
 
-      .entity-card {
-        min-width: 100px;
-        margin: 0 auto;
-      }
+  /* Entity groups */
+  .entity-group {
+    border: 2px solid black;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 15px;
+    background: #fff;
+    position: relative;
+  }
 
-      .entity-header {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-      }
+  .group-header {
+    position: absolute;
+    background: #fff;
+    padding: 0 4px;
+    z-index: 2;
+  }
+  .group-header span { color: inherit; }
 
-      /* Groups layout */
-      .groups-layout .free-layout-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 5px;
-        grid-auto-flow: dense;
-      }
-      .groups-layout .free-layout-container .group-content {
-        display: flex;
-        flex-wrap: wrap;
-        height: 100%;
-        align-items: center;
-      }
+  .groups-layout .group-header {
+    top: 0;
+    transform: translateY(-50%);
+    line-height: 1;
+  }
 
-      /* List layout */
-      .list-layout .free-layout-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 5px;
-        width: 100%;
-      }
-      
-      .list-layout .free-layout-container .entity-group {
-        width: max-content;
-        background: none;
-        border: none;
-        border-radius: 0;
-        padding: 0 0 0 17px;
-        margin: 0;
-        grid-column: span 2;
-      }
-      
-      .list-layout .free-layout-container .group-header {
-        font-weight: 600;
-        margin-bottom: 8px;
-        position: static;
-        background: none;
-        padding: 0;
-      }
-      
-      .list-layout .free-layout-container .group-content {
-        display: grid;
-        width: 100%;
-        break-inside: avoid;
-        gap: 5px;
-      }
-      
-      /* Dynamic grid columns */
-      .list-layout .free-layout-container.show-all .group-content { grid-template-columns: 1fr 28px auto auto; }
-      .list-layout .free-layout-container.hide-title .group-content { grid-template-columns: 28px auto auto; }
-      .list-layout .free-layout-container.hide-icon .group-content { grid-template-columns: 1fr auto auto; }
-      .list-layout .free-layout-container.hide-title.hide-icon .group-content { grid-template-columns: auto auto; }
-      
-      .list-layout .free-layout-container .entity-list-row { display: contents; }
-      
-      .list-layout .free-layout-container .entity-list-row .entity-name {
-        font-weight: 400;
-        white-space: nowrap;
-        text-align: left;
-        align-self: center;
-      }
-      
-      .list-layout .free-layout-container .entity-list-row .entity-icon {
-        justify-self: center;
-        align-self: center;
-        display: flex;
-        align-items: center;
-      }
-      
-      .list-layout .free-layout-container .entity-list-row .entity-value {
-        font-weight: 500;
-        white-space: nowrap;
-        text-align: left;
-        align-self: center;
-      }
-      
-      /* Grid column assignments */
-      .list-layout .free-layout-container.show-all .group-content .entity-name { grid-column: 1; }
-      .list-layout .free-layout-container.show-all .group-content .entity-icon { grid-column: 2; }
-      .list-layout .free-layout-container.show-all .group-content .entity-value { grid-column: 3; }
-      .list-layout .free-layout-container.hide-title .group-content .entity-icon { grid-column: 1; }
-      .list-layout .free-layout-container.hide-title .group-content .entity-value { grid-column: 2; }
-      .list-layout .free-layout-container.hide-icon .group-content .entity-name { grid-column: 1; }
-      .list-layout .free-layout-container.hide-icon .group-content .entity-value { grid-column: 2; }
-      .list-layout .free-layout-container.hide-title.hide-icon .group-content .entity-value { grid-column: 1; }
+  .group-content {
+    margin-top: 8px;
+    gap: 20px;
+  }
 
-      /* Mashup layouts */
-      .mashup--1Lx1R .free-layout-container,
-      .mashup--2x2 .free-layout-container {
-        width: 100%;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
+  .entity-card {
+    min-width: 100px;
+    margin: 0 auto;
+  }
 
-      .free-layout-container.hide-title.hide-icon .entity-group {
-        grid-column: span 1;
-      }
-  
-      /* Weather visualization */
-      .visualizations-container {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
+  .entity-header {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
 
-      .weather-visualization {
-        grid-column: span 2 !important;
-        grid-row: span 2;
-        width: 100% !important;
-        min-width: 250px;
-        max-width: 380px;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-      }
+  /* Groups layout */
+  .groups-layout .free-layout-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 5px;
+    grid-auto-flow: dense;
+  }
+  .groups-layout .free-layout-container .group-content {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    align-items: center;
+  }
 
-      .groups-layout .scale-normal .weather-visualization, .groups-layout .scale-small .weather-visualization { grid-row: span 3; }
-      
-      .groups-layout .scale-small .weather-visualization { grid-column: span 2; }
+  /* List layout */
+  .list-layout .free-layout-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 5px;
+    width: 100%;
+  }
 
-      .weather-main-row {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-      }
+  .list-layout .free-layout-container .entity-group {
+    width: max-content;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0 0 0 17px;
+    margin: 0;
+    grid-column: span 2;
+  }
 
-      .weather-details-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 3px;
-      }
+  .list-layout .free-layout-container .group-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    position: static;
+    background: none;
+    padding: 0;
+  }
 
-      .weather-detail {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 2px 6px;
-        border-left: 1px solid #000;
-        background: none;
-        height: max-content;
-      }
+  .list-layout .free-layout-container .group-content {
+    display: grid;
+    width: 100%;
+    break-inside: avoid;
+    gap: 5px;
+  }
 
-      .weather-detail-icon {
-        filter: grayscale(1) contrast(1.2);
-      }
+  /* Dynamic grid columns */
+  .list-layout .free-layout-container.show-all .group-content { grid-template-columns: 1fr 28px auto auto; }
+  .list-layout .free-layout-container.hide-title .group-content { grid-template-columns: 28px auto auto; }
+  .list-layout .free-layout-container.hide-icon .group-content { grid-template-columns: 1fr auto auto; }
+  .list-layout .free-layout-container.hide-title.hide-icon .group-content { grid-template-columns: auto auto; }
 
-      .weather-icon-small {
-        width: 45px; height: 45px;
-      }
+  .list-layout .free-layout-container .entity-list-row { display: contents; }
 
-      .weather-icon-normal {
-        width: 56px; height: 56px;
-      }
+  .list-layout .free-layout-container .entity-list-row .entity-name {
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: left;
+    align-self: center;
+  }
 
-      .weather-icon-big {
-        width: 70px; height: 70px;
-      }
+  .list-layout .free-layout-container .entity-list-row .entity-icon {
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    align-items: center;
+  }
 
-      .scale-small .weather-detail-icon { width: 18px; height: 18px; }
-      .scale-normal .weather-detail-icon { width: 22px; height: 22px; }
-      .scale-big .weather-detail-icon { width: 28px; height: 28px; }
+  .list-layout .free-layout-container .entity-list-row .entity-value {
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: left;
+    align-self: center;
+  }
 
-      /* Weather forecast */
-      .weather-forecast {
-        display: flex;
-        flex-direction: row;
-        gap: 1px;
-        overflow-x: auto;
-        padding: 8px 0;
-        justify-content: space-between;
-      }
+  /* Grid column assignments */
+  .list-layout .free-layout-container.show-all .group-content .entity-name { grid-column: 1; }
+  .list-layout .free-layout-container.show-all .group-content .entity-icon { grid-column: 2; }
+  .list-layout .free-layout-container.show-all .group-content .entity-value { grid-column: 3; }
+  .list-layout .free-layout-container.hide-title .group-content .entity-icon { grid-column: 1; }
+  .list-layout .free-layout-container.hide-title .group-content .entity-value { grid-column: 2; }
+  .list-layout .free-layout-container.hide-icon .group-content .entity-name { grid-column: 1; }
+  .list-layout .free-layout-container.hide-icon .group-content .entity-value { grid-column: 2; }
+  .list-layout .free-layout-container.hide-title.hide-icon .group-content .entity-value { grid-column: 1; }
 
-      .forecast-day {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: #fff;
-      }
+  /* Mashup layouts */
+  .mashup--1Lx1R .free-layout-container,
+  .mashup--2x2 .free-layout-container {
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
 
-      .forecast-date {
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-      }
+  .free-layout-container.hide-title.hide-icon .entity-group {
+    grid-column: span 1;
+  }
 
-      .forecast-icon {
-        filter: grayscale(1) contrast(1.2);
-      }
+  /* Weather visualization */
+  .visualizations-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 
-      .forecast-temps {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-      }
+  .weather-visualization {
+    grid-column: span 2 !important;
+    grid-row: span 2;
+    width: 100% !important;
+    min-width: 250px;
+    max-width: 380px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-      .forecast-temp-high {
-        font-weight: 600;
-      }
+  .groups-layout .scale-normal .weather-visualization, .groups-layout .scale-small .weather-visualization { grid-row: span 3; }
 
-      .forecast-temp-low {
-        opacity: 0.7;
-      }
+  .groups-layout .scale-small .weather-visualization { grid-column: span 2; }
 
-      .forecast-precip {
-        font-size: 0.85em;
-        text-align: center;
-      }
+  .weather-main-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
 
-    </style>
-  </head>
-  <body class="environment trmnl">
-      <div class="view view--full view--half_vertical view--half_horizontal view--quadrant">
-        <div class="layout">
-          <script>
-     
+  .weather-details-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    border-left: 1px solid #000;
+    background: none;
+    height: max-content;
+  }
+
+  .weather-detail-icon {
+    filter: grayscale(1) contrast(1.2);
+  }
+
+  .weather-icon-small {
+    width: 45px; height: 45px;
+  }
+
+  .weather-icon-normal {
+    width: 56px; height: 56px;
+  }
+
+  .weather-icon-big {
+    width: 70px; height: 70px;
+  }
+
+  .scale-small .weather-detail-icon { width: 18px; height: 18px; }
+  .scale-normal .weather-detail-icon { width: 22px; height: 22px; }
+  .scale-big .weather-detail-icon { width: 28px; height: 28px; }
+
+  /* Weather forecast */
+  .weather-forecast {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+    overflow-x: auto;
+    padding: 8px 0;
+    justify-content: space-between;
+  }
+
+  .forecast-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+  }
+
+  .forecast-date {
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .forecast-icon {
+    filter: grayscale(1) contrast(1.2);
+  }
+
+  .forecast-temps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .forecast-temp-high {
+    font-weight: 600;
+  }
+
+  .forecast-temp-low {
+    opacity: 0.7;
+  }
+
+  .forecast-precip {
+    font-size: 0.85em;
+    text-align: center;
+  }
+</style>
+
+<div class="layout">
+  <script>
 
 class HomeAssistantRenderer {
   constructor(containerId = 'root', configuration = {}) {
@@ -341,15 +329,15 @@ class HomeAssistantRenderer {
     createWeatherVisualization(entity) {
       const stateIcon = this.weatherIconMap[entity.state] || 'mdi:weather-partly-cloudy';
       const iconUrl = `https://api.iconify.design/${stateIcon}.svg`;
-      
+
       const attrs = entity.attributes || {};
       const temp = attrs.temperature;
       const tempUnit = attrs.temperature_unit || '°C';
-      
+
       // Value scaling classes
       const valueClass = `value ${this.textClasses.entityValue}`;
       const unitClass = `value ${this.textClasses.entityUnit}`;
-      
+
       // Weather details configuration with direct access
       const weatherDetails = [
         { key: 'humidity', value: attrs.humidity, unit: '%', icon: 'mdi:water-percent', label: 'Humidity' },
@@ -358,14 +346,14 @@ class HomeAssistantRenderer {
         { key: 'cloud_coverage', value: attrs.cloud_coverage, unit: '%', icon: 'mdi:weather-cloudy', label: 'Clouds' },
         { key: 'visibility', value: attrs.visibility, unit: attrs.visibility_unit || 'km', icon: 'mdi:eye', label: 'Visibility' }
       ];
-      
+
       // Generate detail items only for defined values
       const detailsHtml = weatherDetails
         .filter(detail => detail.value !== undefined)
-        .map(detail => 
+        .map(detail =>
           `<div class="weather-detail"><img class="weather-detail-icon" src="https://api.iconify.design/${detail.icon}.svg" alt="${detail.label}"><span class="weather-detail-value ${valueClass}">${detail.value}<span class="${unitClass}">${detail.unit}</span></span></div>`
         ).join('');
-      
+
       // Render forecast if available
       let forecastHtml = '';
       if (entity.forecast && entity.forecast.length > 0) {
@@ -390,14 +378,14 @@ class HomeAssistantRenderer {
             </div>
           `;
         }).join('');
-        
+
         forecastHtml = `
           <div class="weather-forecast">
             ${forecastDays}
           </div>
         `;
       }
-      
+
       return `
         <div class="entity-group weather-visualization">
           <div class="weather-main-row">
@@ -464,7 +452,7 @@ class HomeAssistantRenderer {
         forecastValue: 'value--regular'
       }
     };
-    
+
     this.textClasses = scaleConfig[this.scale] || scaleConfig.normal;
     this.weatherClasses = weatherScale[this.scale] || weatherScale.normal;
   }
@@ -508,7 +496,7 @@ class HomeAssistantRenderer {
       'tts': 'mdi:volume-high',
       'group': 'mdi:account-group',
       'homeassistant': 'mdi:home-assistant',
-      
+
       // Device class specific icons
       'temperature': 'mdi:thermometer',
       'humidity': 'mdi:water-percent',
@@ -529,7 +517,7 @@ class HomeAssistantRenderer {
       'connectivity': 'mdi:wifi',
       'co2': 'mdi:molecule-co2',
       'pm25': 'mdi:air-filter',
-      
+
       // Fallback icons
       'default': 'mdi:information',
       'error': 'mdi:alert-circle',
@@ -571,15 +559,15 @@ class HomeAssistantRenderer {
     const entityId = entity.entity_id || '';
     const domain = entityId.split('.')[0];
     const deviceClass = entity.attributes?.device_class;
-    
+
     if (deviceClass && this.iconMap[deviceClass]) {
       return this.iconMap[deviceClass];
     }
-    
+
     if (domain && this.iconMap[domain]) {
       return this.iconMap[domain];
     }
-    
+
     return this.iconMap.default;
   }
 
@@ -587,7 +575,7 @@ class HomeAssistantRenderer {
     if (entity.error) {
       return 'Error';
     }
-    
+
     return entity.attributes?.friendly_name || entity.entity_id || 'Unknown Entity';
   }
 
@@ -595,9 +583,9 @@ class HomeAssistantRenderer {
     if (entity.error) {
       return null;
     }
-    
+
     const deviceClass = entity.attributes?.device_class ?? '';
-    
+
     // Capitalize first letter and replace underscores with spaces
     return entity.attributes?.friendly_name ?? (deviceClass.charAt(0).toUpperCase() + deviceClass.slice(1).replace(/_/g, ' '));
   }
@@ -614,7 +602,7 @@ class HomeAssistantRenderer {
 
     const state = entity.state;
     const unit = entity.attributes?.unit_of_measurement || '';
-    
+
     // Handle special states
     if (state === 'on' || state === 'off') {
       return {
@@ -624,7 +612,7 @@ class HomeAssistantRenderer {
         isNumeric: false
       };
     }
-    
+
     // Handle numeric values
     if (!isNaN(state) && state !== '') {
       const numValue = parseFloat(state);
@@ -635,7 +623,7 @@ class HomeAssistantRenderer {
         isNumeric: true
       };
     }
-    
+
     // Handle datetime values
     if (state && state.includes('T') && state.includes(':')) {
       try {
@@ -650,7 +638,7 @@ class HomeAssistantRenderer {
         // If date parsing fails, return as is
       }
     }
-    
+
     return {
       value: state || 'N/A',
       unit: unit,
@@ -659,18 +647,15 @@ class HomeAssistantRenderer {
     };
   }
 
-  /**
-   * Get CSS class for entity icon based on domain
-   */
   getEntityIconClass(entity) {
     if (entity.error) {
       return 'entity-icon error';
     }
-    
+
     const entityId = entity.entity_id || '';
     const domain = entityId.split('.')[0];
     const deviceClass = entity.attributes?.device_class;
-    
+
     const iconClass = deviceClass || domain || 'default';
     return `entity-icon ${iconClass}`;
   }
@@ -679,15 +664,15 @@ class HomeAssistantRenderer {
     if (!iconName) {
       return 'mdi:help-circle';
     }
-    
+
     if (iconName.includes(':')) {
       return iconName;
     }
-    
+
     if (iconName.startsWith('mdi-')) {
       return iconName.replace('mdi-', 'mdi:');
     }
-    
+
     return `mdi:${iconName}`;
   }
 
@@ -695,10 +680,10 @@ class HomeAssistantRenderer {
     const name = this.getEntityName(entity);
     const icon = entity.icon ?? this.getEntityIcon(entity);
     const stateInfo = this.formatEntityState(entity);
-    
+
     const formattedIcon = this.formatIconForUrl(icon);
     const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
-        
+
     return `
       <div class="pill-component rounded--full" data-entity-id="${entity.entity_id || 'error'}">
         <img class="image" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize}; height: ${this.textClasses.iconSize};" onerror="this.style.display='none'">
@@ -713,13 +698,12 @@ class HomeAssistantRenderer {
     const iconClass = this.getEntityIconClass(entity);
     const stateInfo = this.formatEntityState(entity);
     const deviceClassTitle = this.showEntityTitle ? this.getDeviceClassTitle(entity) : '';
-    
+
     const baseCardClass = entity.error ? 'entity-card error' : 'entity-card';
-    
+
     const formattedIcon = this.formatIconForUrl(icon);
     const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
 
-    // Simple style (original)
     return `
       <div class="${baseCardClass}" data-entity-id="${entity.entity_id || 'error'}" data-label="${label}">
         ${deviceClassTitle ? `<div class="device-class-title value ${this.textClasses.deviceClass}">${deviceClassTitle}</div>` : ''}
@@ -738,84 +722,81 @@ class HomeAssistantRenderer {
     if (!pills || pills.length === 0) {
       return '';
     }
-    
+
     const allPills = pills.map(pill => this.createPill(pill));
-    
+
     if (allPills.length === 0) {
       return '';
     }
-    
-      // Use flex classes for pills layout based on position
-      let flexClass = '';
-      switch (this.pillPosition) {
-        case 'top':
-          flexClass = 'flex flex--row flex--center-x flex--top';
-          break;
-        case 'bottom':
-          flexClass = 'flex flex--row flex--center-x flex--bottom';
-          break;
-        case 'left':
-          flexClass = 'flex flex--col flex--left flex--center-y';
-          break;
-        case 'right':
-          flexClass = 'flex flex--col flex--right flex--center-y';
-          break;
-        default:
-          flexClass = 'flex flex--row flex--center-x flex--top';
-      }
-      return `
-        <div class="pills-container pills-container--${this.pillPosition} ${flexClass} gap">
-          ${allPills.join('')}
-        </div>
-      `;
+
+    let flexClass = '';
+    switch (this.pillPosition) {
+      case 'top':
+        flexClass = 'flex flex--row flex--center-x flex--top';
+        break;
+      case 'bottom':
+        flexClass = 'flex flex--row flex--center-x flex--bottom';
+        break;
+      case 'left':
+        flexClass = 'flex flex--col flex--left flex--center-y';
+        break;
+      case 'right':
+        flexClass = 'flex flex--col flex--right flex--center-y';
+        break;
+      default:
+        flexClass = 'flex flex--row flex--center-x flex--top';
+    }
+    return `
+      <div class="pills-container pills-container--${this.pillPosition} ${flexClass} gap">
+        ${allPills.join('')}
+      </div>
+    `;
   }
 
   createEntitySection({ entities, groupName }) {
-      if (this.layoutClass === 'list-layout') {
-        // List layout: 2 columns, each 400px, left then right
-        const entityRows = entities.map(entity => {
-          const name = this.getEntityName(entity);
-          const icon = entity.icon ?? this.getEntityIcon(entity);
-          const iconClass = this.getEntityIconClass(entity);
-          const stateInfo = this.formatEntityState(entity);
-          const formattedIcon = this.formatIconForUrl(icon);
-          const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
-            return `
-              <div class="entity-list-row" data-entity-id="${entity.entity_id || 'error'}">
-                ${this.showEntityTitle ? `<span class="entity-name value ${this.textClasses.entityName}">${name}</span>` : ''}
-                ${this.showEntityIcon ? `<img class="entity-icon ${iconClass}" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize}; height: ${this.textClasses.iconSize};" onerror="this.style.display='none'">` : ''}
-                <span class="entity-value value ${this.textClasses.entityValue} ${stateInfo.isNumeric ? 'value--tnums' : ''}">${stateInfo.value}</span>
-                <span class="enitity-unit value ${this.textClasses.entityUnit}">${stateInfo.unit}</span>
-              </div>
-            `;
-        });
-        
+    if (this.layoutClass === 'list-layout') {
+      const entityRows = entities.map(entity => {
+        const name = this.getEntityName(entity);
+        const icon = entity.icon ?? this.getEntityIcon(entity);
+        const iconClass = this.getEntityIconClass(entity);
+        const stateInfo = this.formatEntityState(entity);
+        const formattedIcon = this.formatIconForUrl(icon);
+        const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
         return `
-          <div class="entity-group" data-label="${groupName}">
-            <div class="group-header">
-              ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
-            </div>
-            <div class="group-content">
-              ${entityRows.join('')}
-            </div>
+          <div class="entity-list-row" data-entity-id="${entity.entity_id || 'error'}">
+            ${this.showEntityTitle ? `<span class="entity-name value ${this.textClasses.entityName}">${name}</span>` : ''}
+            ${this.showEntityIcon ? `<img class="entity-icon ${iconClass}" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize}; height: ${this.textClasses.iconSize};" onerror="this.style.display='none'">` : ''}
+            <span class="entity-value value ${this.textClasses.entityValue} ${stateInfo.isNumeric ? 'value--tnums' : ''}">${stateInfo.value}</span>
+            <span class="enitity-unit value ${this.textClasses.entityUnit}">${stateInfo.unit}</span>
           </div>
         `;
-      } else {
-        // Default (card) layout
-        const entitiesHtml = entities
-          .map(entity => this.createEntityCard(entity, groupName))
-          .join('');
-        return `
-          <div class="entity-group" style="grid-column: span ${entities.length} !important;" data-label="${groupName}">
-            <div class="group-header">
-              ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
-            </div>
-            <div class="group-content grid grid--wrap grid--min-56 entities-grid">
-                ${entitiesHtml}
-            </div>
+      });
+
+      return `
+        <div class="entity-group" data-label="${groupName}">
+          <div class="group-header">
+            ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
           </div>
-        `;
-      }
+          <div class="group-content">
+            ${entityRows.join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      const entitiesHtml = entities
+        .map(entity => this.createEntityCard(entity, groupName))
+        .join('');
+      return `
+        <div class="entity-group" style="grid-column: span ${entities.length} !important;" data-label="${groupName}">
+          <div class="group-header">
+            ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
+          </div>
+          <div class="group-content grid grid--wrap grid--min-56 entities-grid">
+            ${entitiesHtml}
+          </div>
+        </div>
+      `;
+    }
   }
 
   render(webhookData) {
@@ -825,61 +806,57 @@ class HomeAssistantRenderer {
 
     this.container.innerHTML = '';
 
-    const { groups, pills, visualizations } = webhookData || {};    
-    
+    const { groups, pills, visualizations } = webhookData || {};
+
     if (!visualizations?.length && !groups?.length && !pills?.length ) {
       this.renderEmptyState();
       return;
     }
 
-    // Create pills container
     const pillsHtml = this.createPillsContainer(pills);
 
-      // Create entity sections
-      let mainContentHtml = '';
-      
-      let vizSections = [];
-      if (visualizations?.length > 0) {
-         vizSections = visualizations.map((viz, i) => {
-          const domain = viz.entity_id.split('.')[0];
-          if (domain === 'weather') {
-            return this.createWeatherVisualization(viz, i);
-          } else {
-            return `<div class="visualization-container" data-viz-id="${viz.entity_id}"></div>`;
-          }
-        });
-     }
+    let mainContentHtml = '';
 
-      let sections = [];
-      if (groups.length > 0) {
-        sections = groups.map(group => {
-          return this.createEntitySection(group);
-        });
-      }
+    let vizSections = [];
+    if (visualizations?.length > 0) {
+      vizSections = visualizations.map((viz, i) => {
+        const domain = viz.entity_id.split('.')[0];
+        if (domain === 'weather') {
+          return this.createWeatherVisualization(viz, i);
+        } else {
+          return `<div class="visualization-container" data-viz-id="${viz.entity_id}"></div>`;
+        }
+      });
+    }
 
-      // Determine which CSS class to use based on visibility settings
-      let showDetailsClass = 'show-all';
-      if (!this.showEntityTitle && !this.showEntityIcon) {
-        showDetailsClass = 'hide-title hide-icon';
-      } else if (!this.showEntityTitle) {
-        showDetailsClass = 'hide-title';
-      } else if (!this.showEntityIcon) {
-        showDetailsClass = 'hide-icon';
-      }
-  
-       mainContentHtml += `<div class="free-layout-container scale-${this.scale} ${showDetailsClass}">${vizSections.join('')}${sections.join('')}</div>`;
+    let sections = [];
+    if (groups.length > 0) {
+      sections = groups.map(group => {
+        return this.createEntitySection(group);
+      });
+    }
 
-      // Create the layout structure
-      if (pillsHtml) {
-        this.container.innerHTML = `
-          ${pillsHtml}
-          ${mainContentHtml}
-        `;
-      } else {
-        this.container.innerHTML = `
-            ${mainContentHtml}
-        `;
-      }
+    let showDetailsClass = 'show-all';
+    if (!this.showEntityTitle && !this.showEntityIcon) {
+      showDetailsClass = 'hide-title hide-icon';
+    } else if (!this.showEntityTitle) {
+      showDetailsClass = 'hide-title';
+    } else if (!this.showEntityIcon) {
+      showDetailsClass = 'hide-icon';
+    }
+
+    mainContentHtml += `<div class="free-layout-container scale-${this.scale} ${showDetailsClass}">${vizSections.join('')}${sections.join('')}</div>`;
+
+    if (pillsHtml) {
+      this.container.innerHTML = `
+        ${pillsHtml}
+        ${mainContentHtml}
+      `;
+    } else {
+      this.container.innerHTML = `
+        ${mainContentHtml}
+      `;
+    }
   }
 
   renderEmptyState() {
@@ -907,7 +884,6 @@ class HomeAssistantRenderer {
 
 function initializeHomeAssistantRenderer() {
   try {
-    // Get webhook data
     const webhookData = {
       groups: {{ groups | json }},
       pills: {{ pills | json }},
@@ -924,7 +900,6 @@ function initializeHomeAssistantRenderer() {
       return;
     }
 
-    // Pass configuration from webhookData
     const renderer = new HomeAssistantRenderer('root', webhookData.configuration || {});
     renderer.render(webhookData);
   } catch (error) {
@@ -941,67 +916,61 @@ function initializeHomeAssistantRenderer() {
     }
   }
 }
-          </script>
+  </script>
 
-          <div id="root">
-            <!-- Entities will be rendered here -->
-          </div>
+  <div id="root"></div>
 
-          <script>
-            document.addEventListener('DOMContentLoaded', function () {
-              try {
-                initializeHomeAssistantRenderer();
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        initializeHomeAssistantRenderer();
 
-                if (window.trmnl) {
-                  window.trmnl.ready();
-                } else {
-                  document.dispatchEvent(new CustomEvent('trmnl-ready'));
+        if (window.trmnl) {
+          window.trmnl.ready();
+        } else {
+          document.dispatchEvent(new CustomEvent('trmnl-ready'));
+          window.trmnlReady = true;
+        }
+      } catch (error) {
+        if (window.trmnl) {
+          window.trmnl.ready();
+        } else {
+          document.dispatchEvent(new CustomEvent('trmnl-ready'));
+          window.trmnlReady = true;
+        }
+      }
+    });
 
-                  window.trmnlReady = true;
-                }
-              } catch (error) {
-                if (window.trmnl) {
-                  window.trmnl.ready();
-                } else {
-                  document.dispatchEvent(new CustomEvent('trmnl-ready'));
-                  window.trmnlReady = true;
-                }
-              }
-            });
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(() => {
+        try {
+          initializeHomeAssistantRenderer();
 
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-              setTimeout(() => {
-                try {
-                  initializeHomeAssistantRenderer();
+          if (window.trmnl) {
+            window.trmnl.ready();
+          } else {
+            document.dispatchEvent(new CustomEvent('trmnl-ready'));
+            window.trmnlReady = true;
+          }
+        } catch (error) {
+          if (window.trmnl) {
+            window.trmnl.ready();
+          } else {
+            document.dispatchEvent(new CustomEvent('trmnl-ready'));
+            window.trmnlReady = true;
+          }
+        }
+      }, 100);
+    }
+  </script>
+</div>
 
-                  if (window.trmnl) {
-                    window.trmnl.ready();
-                  } else {
-                    document.dispatchEvent(new CustomEvent('trmnl-ready'));
-                    window.trmnlReady = true;
-                  }
-                } catch (error) {
-                  if (window.trmnl) {
-                    window.trmnl.ready();
-                  } else {
-                    document.dispatchEvent(new CustomEvent('trmnl-ready'));
-                    window.trmnlReady = true;
-                  }
-                }
-              }, 100);
-            }
-          </script>
-        </div>
-
-        {% if configuration.show_title_bar != 'false' %}
-          <div class="title_bar">
-            <svg class="image" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 240 240" fill="none">
-              <path d="M240 224.762C240 233.012 233.25 239.762 225 239.762H15C6.75 239.762 0 233.012 0 224.762V134.762C0 126.512 4.77 114.993 10.61 109.153L109.39 10.3725C115.22 4.5425 124.77 4.5425 130.6 10.3725L229.39 109.162C235.22 114.992 240 126.522 240 134.772V224.772V224.762Z" fill="#F2F4F9"/>
-              <path d="M229.39 109.153L130.61 10.3725C124.78 4.5425 115.23 4.5425 109.4 10.3725L10.61 109.153C4.78 114.983 0 126.512 0 134.762V224.762C0 233.012 6.75 239.762 15 239.762H107.27L66.64 199.132C64.55 199.852 62.32 200.262 60 200.262C48.7 200.262 39.5 191.062 39.5 179.762C39.5 168.462 48.7 159.262 60 159.262C71.3 159.262 80.5 168.462 80.5 179.762C80.5 182.092 80.09 184.322 79.37 186.412L111 218.042V102.162C104.2 98.8225 99.5 91.8425 99.5 83.7725C99.5 72.4725 108.7 63.2725 120 63.2725C131.3 63.2725 140.5 72.4725 140.5 83.7725C140.5 91.8425 135.8 98.8225 129 102.162V183.432L160.46 151.972C159.84 150.012 159.5 147.932 159.5 145.772C159.5 134.472 168.7 125.272 180 125.272C191.3 125.272 200.5 134.472 200.5 145.772C200.5 157.072 191.3 166.272 180 166.272C177.5 166.272 175.12 165.802 172.91 164.982L129 208.892V239.772H225C233.25 239.772 240 233.022 240 224.772V134.772C240 126.522 235.23 115.002 229.39 109.162V109.153Z" fill="#000"/>
-            </svg>
-            <span class="title">Home Assistant Dashboard</span>
-          </div>
-        {% endif %}
-      </div>
-  </body>
-</html>
+{% if configuration.show_title_bar != 'false' %}
+  <div class="title_bar">
+    <svg class="image" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 240 240" fill="none">
+      <path d="M240 224.762C240 233.012 233.25 239.762 225 239.762H15C6.75 239.762 0 233.012 0 224.762V134.762C0 126.512 4.77 114.993 10.61 109.153L109.39 10.3725C115.22 4.5425 124.77 4.5425 130.6 10.3725L229.39 109.162C235.22 114.992 240 126.522 240 134.772V224.772V224.762Z" fill="#F2F4F9"/>
+      <path d="M229.39 109.153L130.61 10.3725C124.78 4.5425 115.23 4.5425 109.4 10.3725L10.61 109.153C4.78 114.983 0 126.512 0 134.762V224.762C0 233.012 6.75 239.762 15 239.762H107.27L66.64 199.132C64.55 199.852 62.32 200.262 60 200.262C48.7 200.262 39.5 191.062 39.5 179.762C39.5 168.462 48.7 159.262 60 159.262C71.3 159.262 80.5 168.462 80.5 179.762C80.5 182.092 80.09 184.322 79.37 186.412L111 218.042V102.162C104.2 98.8225 99.5 91.8425 99.5 83.7725C99.5 72.4725 108.7 63.2725 120 63.2725C131.3 63.2725 140.5 72.4725 140.5 83.7725C140.5 91.8425 135.8 98.8225 129 102.162V183.432L160.46 151.972C159.84 150.012 159.5 147.932 159.5 145.772C159.5 134.472 168.7 125.272 180 125.272C191.3 125.272 200.5 134.472 200.5 145.772C200.5 157.072 191.3 166.272 180 166.272C177.5 166.272 175.12 165.802 172.91 164.982L129 208.892V239.772H225C233.25 239.772 240 233.022 240 224.772V134.772C240 126.522 235.23 115.002 229.39 109.162V109.153Z" fill="#000"/>
+    </svg>
+    <span class="title">Home Assistant Dashboard</span>
+  </div>
+{% endif %}

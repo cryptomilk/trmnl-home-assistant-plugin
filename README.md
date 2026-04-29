@@ -28,33 +28,59 @@ Before setting up this plugin, ensure you have:
 
 1. **Home Assistant** running and accessible
 2. **TRMNL device** set up and connected
-3. **Network connectivity** between TRMNL and Home Assistant
+
+---
 
 ## Setup Instructions
 
-### Step 1: Install the Plugin
+There are two parts to set up: the TRMNL plugin (on trmnl.com) and the Home
+Assistant integration (e.g. via HACS).
+
+### Step 1: Create the TRMNL Private Plugin
+
+1. Log in to [trmnl.com](https://trmnl.com) and go to **Plugins**
+2. Search for **"Private Plugin"** and select it
+3. Enter the name: **Home Assistant Dashboard**
+4. Set the strategy to **Webhook**
+5. Click **Save**
+6. Click **Edit Markup** (top right of the plugin page)
+7. Select the **Full** tab
+8. Paste the entire contents of
+   [`trmnl-plugin/src/full.liquid`](trmnl-plugin/src/full.liquid) into the code
+   editor (look for the area starting with a `1` line number on the left)
+9. Save the markup
+10. Go back to the plugin settings
+11. Copy the **Webhook URL** — you will need it in Step 3
+
+### Step 2: Install the Home Assistant Integration
 
 #### HACS (Recommended)
 1. Add this repository to HACS as a custom repository (type: Integration)
-2. Install via HACS
+2. Install **TRMNL Dashboard** via HACS
 3. Restart Home Assistant
 
 #### Manual Installation
-1. Copy the `trmnl_dashboard` folder to your Home Assistant `custom_components` directory
+1. Copy the `custom_components/trmnl_dashboard` folder into your Home Assistant
+   `custom_components` directory
 2. Restart Home Assistant
 
-### Step 2: Add and Configure the Integration
+### Step 3: Configure the Integration
 
 1. Go to **Settings > Devices & Services** in Home Assistant
-2. Click **Add Integration** and search for `TRMNL Dashboard`
-3. Use the UI to group entities, set labels, and customize your dashboard
+2. Click **Add Integration** and search for **TRMNL Dashboard**
+3. Paste the **Webhook URL** from Step 1 when prompted
+4. Use the UI to group entities, set labels, and customize your dashboard
+
+---
 
 ## How It Works
 
-- Home Assistant sends entity data to your TRMNL device using a webhook.
-- This plugin receives the data and displays it on the TRMNL screen.
-- No control or commands are sent from TRMNL to Home Assistant.
-- The integration is display-only: you cannot trigger automations or change entity states from TRMNL.
+- Home Assistant collects the current state of your configured entities and
+  POSTs them to your TRMNL webhook URL every 60 seconds (configurable).
+- TRMNL renders the data using the Liquid template and displays it on your
+  e-ink screen.
+- No control or commands are sent from TRMNL to Home Assistant — the
+  integration is display-only.
 
 ---
 
@@ -63,13 +89,17 @@ Before setting up this plugin, ensure you have:
 ### HACS configuration
 ![hacs configuration](screenshots/hacs_configuration.png)
 
+---
 
 ## Troubleshooting
 
 **Dashboard not displaying:**
+- Use **Force Refresh** on the TRMNL plugin page to manually trigger a screen update
 - Restart Home Assistant
 - Check logs for errors related to `trmnl_dashboard`
-- Verify integration is listed under **Settings > Devices & Services**
+- Verify the integration is listed under **Settings > Devices & Services**
+
+---
 
 ## Contributing
 We welcome contributions! Please:
@@ -91,7 +121,3 @@ For support, please:
 1. Check the troubleshooting section above
 2. Search existing GitHub issues
 3. Create a new issue with details about your setup
-
----
-
-*This plugin only displays data sent from Home Assistant to TRMNL via webhook. No entity control is possible from TRMNL.*
