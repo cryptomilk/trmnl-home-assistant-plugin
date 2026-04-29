@@ -4,6 +4,35 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 DOMAIN = "trmnl_dashboard"
 _LOGGER = logging.getLogger(__name__)
 
+_ENTITY_ATTRS = {"friendly_name", "device_class", "unit_of_measurement", "icon"}
+_WEATHER_ATTRS = {
+    "friendly_name", "temperature", "temperature_unit", "humidity",
+    "pressure", "pressure_unit", "wind_speed", "wind_speed_unit",
+    "cloud_coverage", "visibility", "visibility_unit", "precipitation_unit",
+}
+_FORECAST_ATTRS = {"datetime", "condition", "temperature", "templow", "precipitation"}
+
+def _slim_entity(entity_id, state_obj):
+    attrs = state_obj.attributes
+    return {
+        "entity_id": entity_id,
+        "state": state_obj.state,
+        "attributes": {k: attrs[k] for k in _ENTITY_ATTRS if k in attrs},
+    }
+
+def _slim_weather(entity_id, state_obj, forecast):
+    attrs = state_obj.attributes
+    slim_forecast = [
+        {k: day[k] for k in _FORECAST_ATTRS if k in day}
+        for day in (forecast or [])[:5]
+    ]
+    return {
+        "entity_id": entity_id,
+        "state": state_obj.state,
+        "attributes": {k: attrs[k] for k in _WEATHER_ATTRS if k in attrs},
+        "forecast": slim_forecast,
+    }
+
 async def async_setup_entry(hass, entry):
     # Register static path for frontend JS
     # Static www directory registration removed
@@ -24,7 +53,7 @@ async def async_setup_entry(hass, entry):
 
     session = async_get_clientsession(hass)
     merged_config = get_merged_config()
-    interval_seconds = merged_config.get("interval", 60)  # Default 60s
+    interval_seconds = merged_config.get("interval", 300)  # Default 5 min (TRMNL free: 12 req/hour)
 
     try:
         async def periodic_update(now):
@@ -40,17 +69,9 @@ async def async_setup_entry(hass, entry):
                 for entity in group.get("entities", []):
                     entity_id = entity.get("entity_id")
                     state_obj = hass.states.get(entity_id)
-                    if state_obj:
-                        updated_entity = {
-                            "entity_id": entity_id,
-                            "state": state_obj.state,
-                            "attributes": dict(state_obj.attributes),
-                            "last_changed": str(state_obj.last_changed),
-                            "last_updated": str(state_obj.last_updated),
-                        }
-                        updated_entities.append(updated_entity)
-                    else:
-                        updated_entities.append(entity)  # fallback to config
+                    updated_entities.append(
+                        _slim_entity(entity_id, state_obj) if state_obj else entity
+                    )
                 updated_group = dict(group)
                 updated_group["entities"] = updated_entities
                 updated_groups.append(updated_group)
@@ -58,30 +79,15 @@ async def async_setup_entry(hass, entry):
             for pill in pills:
                 entity_id = pill.get("entity_id")
                 state_obj = hass.states.get(entity_id)
-                if state_obj:
-                    updated_pill = {
-                        "entity_id": entity_id,
-                        "state": state_obj.state,
-                        "attributes": dict(state_obj.attributes),
-                        "last_changed": str(state_obj.last_changed),
-                        "last_updated": str(state_obj.last_updated),
-                    }
-                    updated_pills.append(updated_pill)
-                else:
-                    updated_pills.append(pill)
+                updated_pills.append(
+                    _slim_entity(entity_id, state_obj) if state_obj else pill
+                )
             updated_visualizations = []
             for viz in visualizations:
                 entity_id = viz.get("entity_id")
                 state_obj = hass.states.get(entity_id)
                 if state_obj:
-                    updated_viz = {
-                        "entity_id": entity_id,
-                        "state": state_obj.state,
-                        "attributes": dict(state_obj.attributes),
-                        "last_changed": str(state_obj.last_changed),
-                        "last_updated": str(state_obj.last_updated),
-                    }
-                    # Fetch forecast for weather entities
+                    forecast = []
                     if entity_id.startswith("weather."):
                         try:
                             forecast_response = await hass.services.async_call(
@@ -92,11 +98,10 @@ async def async_setup_entry(hass, entry):
                                 return_response=True
                             )
                             if forecast_response and entity_id in forecast_response:
-                                updated_viz["forecast"] = forecast_response[entity_id].get("forecast", [])
+                                forecast = forecast_response[entity_id].get("forecast", [])
                         except Exception as forecast_err:
-                            # Some weather entities may not support get_forecasts service
                             _LOGGER.debug(f"Could not fetch forecast for {entity_id}: {forecast_err}")
-                    updated_visualizations.append(updated_viz)
+                    updated_visualizations.append(_slim_weather(entity_id, state_obj, forecast))
                 else:
                     updated_visualizations.append(viz)
             webhook_data = {
@@ -138,17 +143,9 @@ async def async_setup_entry(hass, entry):
                 for entity in group.get("entities", []):
                     entity_id = entity.get("entity_id")
                     state_obj = hass.states.get(entity_id)
-                    if state_obj:
-                        updated_entity = {
-                            "entity_id": entity_id,
-                            "state": state_obj.state,
-                            "attributes": dict(state_obj.attributes),
-                            "last_changed": str(state_obj.last_changed),
-                            "last_updated": str(state_obj.last_updated),
-                        }
-                        updated_entities.append(updated_entity)
-                    else:
-                        updated_entities.append(entity)  # fallback to config
+                    updated_entities.append(
+                        _slim_entity(entity_id, state_obj) if state_obj else entity
+                    )
                 updated_group = dict(group)
                 updated_group["entities"] = updated_entities
                 updated_groups.append(updated_group)
@@ -156,30 +153,15 @@ async def async_setup_entry(hass, entry):
             for pill in pills:
                 entity_id = pill.get("entity_id")
                 state_obj = hass.states.get(entity_id)
-                if state_obj:
-                    updated_pill = {
-                        "entity_id": entity_id,
-                        "state": state_obj.state,
-                        "attributes": dict(state_obj.attributes),
-                        "last_changed": str(state_obj.last_changed),
-                        "last_updated": str(state_obj.last_updated),
-                    }
-                    updated_pills.append(updated_pill)
-                else:
-                    updated_pills.append(pill)
+                updated_pills.append(
+                    _slim_entity(entity_id, state_obj) if state_obj else pill
+                )
             updated_visualizations = []
             for viz in visualizations:
                 entity_id = viz.get("entity_id")
                 state_obj = hass.states.get(entity_id)
                 if state_obj:
-                    updated_viz = {
-                        "entity_id": entity_id,
-                        "state": state_obj.state,
-                        "attributes": dict(state_obj.attributes),
-                        "last_changed": str(state_obj.last_changed),
-                        "last_updated": str(state_obj.last_updated),
-                    }
-                    # Fetch forecast for weather entities
+                    forecast = []
                     if entity_id.startswith("weather."):
                         try:
                             forecast_response = await hass.services.async_call(
@@ -190,11 +172,10 @@ async def async_setup_entry(hass, entry):
                                 return_response=True
                             )
                             if forecast_response and entity_id in forecast_response:
-                                updated_viz["forecast"] = forecast_response[entity_id].get("forecast", [])
+                                forecast = forecast_response[entity_id].get("forecast", [])
                         except Exception as forecast_err:
-                            # Some weather entities may not support get_forecasts service
                             _LOGGER.debug(f"Could not fetch forecast for {entity_id}: {forecast_err}")
-                    updated_visualizations.append(updated_viz)
+                    updated_visualizations.append(_slim_weather(entity_id, state_obj, forecast))
                 else:
                     updated_visualizations.append(viz)
             webhook_data = {
