@@ -43,14 +43,7 @@ Assistant integration (e.g. via HACS).
 3. Enter the name: **Home Assistant Dashboard**
 4. Set the strategy to **Webhook**
 5. Click **Save**
-6. Click **Edit Markup** (top right of the plugin page)
-7. Select the **Full** tab
-8. Paste the entire contents of
-   [`trmnl-plugin/src/full.liquid`](trmnl-plugin/src/full.liquid) into the code
-   editor (look for the area starting with a `1` line number on the left)
-9. Save the markup
-10. Go back to the plugin settings
-11. Copy the **Webhook URL** — you will need it in Step 3
+6. Copy the **Webhook URL** — you will need it in Step 3
 
 ### Step 2: Install the Home Assistant Integration
 
@@ -71,14 +64,28 @@ Assistant integration (e.g. via HACS).
 3. Paste the **Webhook URL** from Step 1 when prompted
 4. Use the UI to group entities, set labels, and customize your dashboard
 
+### Step 4: Set up the TRMNL Markup
+
+1. In Home Assistant, open **TRMNL Dashboard** from the sidebar
+2. Verify the preview looks correct
+3. Click **Copy Template**
+4. Go back to your plugin on [trmnl.com](https://trmnl.com) and click
+   **Edit Markup** (top right of the plugin page)
+5. Select the **Full** tab and paste the template into the code editor
+6. Save the markup
+
 ---
 
 ## How It Works
 
 - Home Assistant collects the current state of your configured entities and
-  POSTs them to your TRMNL webhook URL every 60 seconds (configurable).
+  POSTs them to your TRMNL webhook URL every 5 minutes (configurable).
 - TRMNL renders the data using the Liquid template and displays it on your
   e-ink screen.
+- The **TRMNL Dashboard** sidebar panel in Home Assistant shows a live preview
+  of how the display will look, along with payload size information.
+- The **Copy Template** button generates the Liquid template from the same
+  renderer used for the preview — paste it into TRMNL's markup editor.
 - No control or commands are sent from TRMNL to Home Assistant — the
   integration is display-only.
 
