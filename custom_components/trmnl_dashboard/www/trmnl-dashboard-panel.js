@@ -162,7 +162,7 @@ const TRMNL_CSS = `
   .list-layout .free-layout-container .entity-list-row { display: contents; }
 
   .list-layout .free-layout-container .entity-list-row .entity-name {
-    font-weight: 400;
+    font-weight: 500;
     white-space: nowrap;
     text-align: left;
     align-self: center;
@@ -306,6 +306,9 @@ const TRMNL_CSS = `
     font-size: 0.8em;
     text-align: center;
   }
+
+  /* Boost weight for small text on e-ink */
+  .value--xxsmall, .value--xsmall { font-weight: 500; }
 `;
 
 // ---------------------------------------------------------------------------
