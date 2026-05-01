@@ -7,6 +7,7 @@
         "description": "Configure your TRMNL Dashboard integration.",
         "data": {
           "webhook_url": "Webhook URL",
+          "trmnl_tier": "TRMNL Plan",
           "layout": "Layout",
           "pill_position": "Pill Position",
           "show_title_bar": "Show Title Bar",
@@ -57,6 +58,7 @@
         "description": "Edit pill entities and configure groups.",
         "data": {
           "webhook_url": "Webhook URL",
+          "trmnl_tier": "TRMNL Plan",
           "layout": "Layout",
           "pill_position": "Pill Position",
           "show_title_bar": "Show Title Bar",
@@ -116,6 +118,12 @@
     }
   },
   "selector": {
+    "trmnl_tier": {
+      "options": {
+        "free": "Free (2 KB payload, 5 min interval)",
+        "paid": "Paid (64 KB payload, 1 min interval)"
+      }
+    },
     "layout": {
       "options": {
         "groups": "Groups",

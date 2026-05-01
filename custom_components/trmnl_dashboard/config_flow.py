@@ -2,7 +2,7 @@ import voluptuous as vol
 import logging
 from homeassistant import config_entries
 from homeassistant.core import callback
-from . import DOMAIN
+from . import DOMAIN, TRMNL_TIERS
 from .webhook import send_to_trmnl_webhook
 from homeassistant.helpers.selector import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -55,6 +55,7 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             visualizations_obj = [{"entity_id": ent} for ent in visualization_entities if ent]
             data = {
                 "webhook_url": webhook_url,
+                "trmnl_tier": user_input.get("trmnl_tier", "free"),
                 "groups": new_groups,
                 "pills": pills_obj,
                 "visualizations": visualizations_obj,
@@ -150,11 +151,11 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "scale": data.get("scale", "normal")
                     }
                 }
+                tier = TRMNL_TIERS.get(data.get("trmnl_tier", "free"), TRMNL_TIERS["free"])
                 try:
-                    await send_to_trmnl_webhook(session, webhook_data, data["webhook_url"])
+                    await send_to_trmnl_webhook(session, webhook_data, data["webhook_url"], tier["max_payload_bytes"])
                 except Exception as e:
-                    import logging
-                    logging.getLogger(__name__).error(f"TRMNL Dashboard config_flow initial webhook failed: {e}")
+                    _LOGGER.error("TRMNL Dashboard config_flow initial webhook failed: %s", e)
             return self.async_create_entry(title="TRMNL Dashboard", data=data)
         else:
             groups = prev_data.get("groups", [])
@@ -183,11 +184,14 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema_dict: dict = {
             vol.Required("webhook_url", default=webhook_url_default): str,
         }
-        
+
+        trmnl_tier_default = user_input.get("trmnl_tier") if user_input else prev_data.get("trmnl_tier", "free")
+        schema_dict[vol.Optional("trmnl_tier", default=trmnl_tier_default)] = selector({"select": {"options": ["free", "paid"], "translation_key": "trmnl_tier"}})
+
         # TRMNL Configuration fields
         layout_default = user_input.get("layout") if user_input else prev_data.get("layout", "groups")
         schema_dict[vol.Optional("layout", default=layout_default)] = selector({"select": {"options": ["groups", "list"], "translation_key": "layout"}})
-        
+
         pill_position_default = user_input.get("pill_position") if user_input else prev_data.get("pill_position", "top")
         schema_dict[vol.Optional("pill_position", default=pill_position_default)] = selector({"select": {"options": ["top", "bottom", "left", "right"], "translation_key": "pill_position"}})
         
@@ -305,6 +309,7 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
                 visualizations_obj = [{"entity_id": ent} for ent in visualization_entities if ent]
                 data = {
                     "webhook_url": webhook_url,
+                    "trmnl_tier": user_input.get("trmnl_tier", "free"),
                     "groups": updated_groups,
                     "pills": pills_obj,
                     "visualizations": visualizations_obj,
@@ -399,11 +404,11 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
                             "scale": data.get("scale", "normal")
                         }
                     }
+                    tier = TRMNL_TIERS.get(data.get("trmnl_tier", "free"), TRMNL_TIERS["free"])
                     try:
-                        await send_to_trmnl_webhook(session, webhook_data, data["webhook_url"])
+                        await send_to_trmnl_webhook(session, webhook_data, data["webhook_url"], tier["max_payload_bytes"])
                     except Exception as e:
-                        import logging
-                        logging.getLogger(__name__).error(f"TRMNL Dashboard config_flow options webhook failed: {e}")
+                        _LOGGER.error("TRMNL Dashboard config_flow options webhook failed: %s", e)
                 return self.async_create_entry(title="config_flow.options_title", data=data)
             return self.async_create_entry(title="config_flow.options_title", data=data)
         else:
@@ -425,11 +430,14 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
         schema_dict: dict = {
             vol.Required("webhook_url", default=prev_data.get("webhook_url", "")): str,
         }
-        
+
+        trmnl_tier_default = user_input.get("trmnl_tier") if user_input else prev_data.get("trmnl_tier", "free")
+        schema_dict[vol.Optional("trmnl_tier", default=trmnl_tier_default)] = selector({"select": {"options": ["free", "paid"], "translation_key": "trmnl_tier"}})
+
         # TRMNL Configuration fields
         layout_default = user_input.get("layout") if user_input else prev_data.get("layout", "groups")
         schema_dict[vol.Optional("layout", default=layout_default)] = selector({"select": {"options": ["groups", "list"], "translation_key": "layout"}})
-        
+
         pill_position_default = user_input.get("pill_position") if user_input else prev_data.get("pill_position", "top")
         schema_dict[vol.Optional("pill_position", default=pill_position_default)] = selector({"select": {"options": ["top", "bottom", "left", "right"], "translation_key": "pill_position"}})
         

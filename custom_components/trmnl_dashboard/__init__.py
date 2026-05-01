@@ -1,8 +1,14 @@
 import logging
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from .webhook import PayloadTooLargeError, PAYLOAD_LIMIT_FREE, PAYLOAD_LIMIT_PAID
 
 DOMAIN = "trmnl_dashboard"
 _LOGGER = logging.getLogger(__name__)
+
+TRMNL_TIERS = {
+    "free": {"max_payload_bytes": PAYLOAD_LIMIT_FREE, "min_interval": 300},
+    "paid": {"max_payload_bytes": PAYLOAD_LIMIT_PAID, "min_interval": 60},
+}
 
 _ENTITY_ATTRS = {"friendly_name", "device_class", "unit_of_measurement", "icon"}
 _WEATHER_ATTRS = {
@@ -53,11 +59,18 @@ async def async_setup_entry(hass, entry):
 
     session = async_get_clientsession(hass)
     merged_config = get_merged_config()
-    interval_seconds = merged_config.get("interval", 300)  # Default 5 min (TRMNL free: 12 req/hour)
+    tier_name = merged_config.get("trmnl_tier", "free")
+    tier = TRMNL_TIERS.get(tier_name, TRMNL_TIERS["free"])
+    max_payload_bytes = tier["max_payload_bytes"]
+    min_interval = tier["min_interval"]
+    interval_seconds = max(merged_config.get("interval", 300), min_interval)
 
     try:
         async def periodic_update(now):
             config = get_merged_config()
+            cur_tier_name = config.get("trmnl_tier", "free")
+            cur_tier = TRMNL_TIERS.get(cur_tier_name, TRMNL_TIERS["free"])
+            cur_max_payload = cur_tier["max_payload_bytes"]
             webhook_url = config.get("webhook_url")  # Always fetch latest
             # Build dynamic data from entity states
             groups = config.get("groups", [])
@@ -119,7 +132,21 @@ async def async_setup_entry(hass, entry):
             }
             if webhook_url:
                 try:
-                    await send_to_trmnl_webhook(session, webhook_data, webhook_url)
+                    await send_to_trmnl_webhook(session, webhook_data, webhook_url, cur_max_payload)
+                except PayloadTooLargeError as e:
+                    await hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": "TRMNL Dashboard",
+                            "message": (
+                                f"Payload too large: {e.size} bytes "
+                                f"(limit: {e.limit} bytes for {cur_tier_name} tier). "
+                                "Remove some entities or upgrade your TRMNL plan."
+                            ),
+                            "notification_id": "trmnl_payload_too_large",
+                        },
+                    )
                 except Exception as e:
                     _LOGGER.error(f"TRMNL Dashboard periodic update failed: {e}")
 
@@ -192,7 +219,21 @@ async def async_setup_entry(hass, entry):
                 }
             }
             try:
-                await send_to_trmnl_webhook(session, webhook_data, webhook_url)
+                await send_to_trmnl_webhook(session, webhook_data, webhook_url, max_payload_bytes)
+            except PayloadTooLargeError as e:
+                await hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": "TRMNL Dashboard",
+                        "message": (
+                            f"Payload too large: {e.size} bytes "
+                            f"(limit: {e.limit} bytes for {tier_name} tier). "
+                            "Remove some entities or upgrade your TRMNL plan."
+                        ),
+                        "notification_id": "trmnl_payload_too_large",
+                    },
+                )
             except Exception as e:
                 _LOGGER.error(f"TRMNL Dashboard initial update failed: {e}")
 
