@@ -70,8 +70,8 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 hass = self.hass
                 session = async_get_clientsession(hass)
                 # Expand entities like in __init__.py
-                groups = data.get("groups", [])
-                pills = data.get("pills", [])
+                groups: list[dict] = data.get("groups", [])  # ty: ignore[invalid-assignment]
+                pills: list[dict] = data.get("pills", [])  # ty: ignore[invalid-assignment]
                 updated_groups = []
                 for group in groups:
                     updated_entities = []
@@ -107,7 +107,7 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         updated_pills.append(updated_pill)
                     else:
                         updated_pills.append(pill)
-                visualization_entities = data.get("visualizations", [])
+                visualization_entities: list[dict] = data.get("visualizations", [])  # ty: ignore[invalid-assignment]
                 updated_visualizations = []
                 for viz in visualization_entities:
                     entity_id = viz.get("entity_id")
@@ -120,8 +120,7 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             "last_changed": str(state_obj.last_changed),
                             "last_updated": str(state_obj.last_updated),
                         }
-                        # Fetch forecast for weather entities
-                        if entity_id.startswith("weather."):
+                        if entity_id and entity_id.startswith("weather."):
                             try:
                                 forecast_response = await hass.services.async_call(
                                     "weather",
@@ -181,7 +180,7 @@ class TrmnlWebhookConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             webhook_url_default = user_input["webhook_url"]
         else:
             webhook_url_default = prev_data.get("webhook_url", "")
-        schema_dict = {
+        schema_dict: dict = {
             vol.Required("webhook_url", default=webhook_url_default): str,
         }
         
@@ -320,9 +319,9 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
                 if data.get("webhook_url"):
                     session = async_get_clientsession(hass)
                     # Expand entities like in __init__.py
-                    groups = data.get("groups", [])
-                    pills = data.get("pills", [])
-                    visualizations = data.get("visualizations", [])
+                    groups: list[dict] = data.get("groups", [])  # ty: ignore[invalid-assignment]
+                    pills: list[dict] = data.get("pills", [])  # ty: ignore[invalid-assignment]
+                    visualizations: list[dict] = data.get("visualizations", [])  # ty: ignore[invalid-assignment]
                     updated_groups = []
                     for group in groups:
                         updated_entities = []
@@ -370,8 +369,7 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
                                 "last_changed": str(state_obj.last_changed),
                                 "last_updated": str(state_obj.last_updated),
                             }
-                            # Fetch forecast for weather entities
-                            if entity_id.startswith("weather."):
+                            if entity_id and entity_id.startswith("weather."):
                                 try:
                                     forecast_response = await hass.services.async_call(
                                         "weather",
@@ -424,7 +422,7 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
 
     def _get_dynamic_options_schema(self, prev_data=None, user_input=None, num_groups=1):
         prev_data = prev_data or {}
-        schema_dict = {
+        schema_dict: dict = {
             vol.Required("webhook_url", default=prev_data.get("webhook_url", "")): str,
         }
         
@@ -488,7 +486,7 @@ class TrmnlWebhookOptionsFlowHandler(config_entries.OptionsFlow):
 
     def _get_options_schema(self, prev_data=None, user_input=None, num_groups=1):
         prev_data = prev_data or {}
-        schema_dict = {
+        schema_dict: dict = {
             vol.Required("webhook_url", default=prev_data.get("webhook_url", "")): str,
         }
         # Pills first

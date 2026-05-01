@@ -1,0 +1,6 @@
+[analysis]
+allowed-unresolved-imports = [
+    "homeassistant.**",
+    "voluptuous",
+    "voluptuous.**",
+]
