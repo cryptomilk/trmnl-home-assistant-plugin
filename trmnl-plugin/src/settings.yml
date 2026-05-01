@@ -1,9 +1,0 @@
----
-strategy: webhook
-id: 138269
-custom_fields:
-  - keyname: author_bio
-    field_type: author_bio
-    name: Author
-    description: Created by pwojtaszko | GitHub→ https://github.com/pwojtaszko/trmnl-home-assistant-plugin | Works with any Home Assistant instance with HACS TRMNL Dashboard integration enabled
-name: Home Assistant Dashboard
