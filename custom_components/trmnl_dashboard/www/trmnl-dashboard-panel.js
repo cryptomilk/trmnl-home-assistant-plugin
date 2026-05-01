@@ -1,0 +1,1172 @@
+// TRMNL Dashboard — HA sidebar panel + Liquid template generator
+// The CSS and HomeAssistantRenderer class below are the single source of truth.
+// full.liquid is generated from them via generateLiquidTemplate().
+
+// ---------------------------------------------------------------------------
+// Section 1: TRMNL CSS (original selectors for template generation)
+// ---------------------------------------------------------------------------
+
+const TRMNL_CSS = `
+  /* Layout */
+  .trmnl .view .layout { flex: 1; }
+  .trmnl .view--quadrant .title_bar,
+  .trmnl .view--half_horizontal::before { background: none; }
+
+  #root {
+    font-family: 'Inter', 'NicoClean', sans-serif;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
+  #root:has(.pills-container--left) { flex-direction: row; }
+  #root:has(.pills-container--right) { flex-direction: row-reverse; }
+  #root:has(.pills-container--top) { flex-direction: column; }
+  #root:has(.pills-container--bottom) { flex-direction: column-reverse; }
+
+  .sections-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Pills */
+  .pills-container,
+  .pills-container--top { margin-bottom: 10px; }
+  .pills-container--bottom { margin-top: 10px; }
+  .pills-container--left { margin-right: 10px; }
+  .pills-container--right { margin-left: 10px; }
+
+  .pill-component {
+    border: 2px solid black;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 5px;
+  }
+
+  .pills-container--left .pill-component,
+  .pills-container--right .pill-component {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+
+  .app-root.list-layout .pill-component { border: none; }
+
+  /* Entity common styles */
+  .entity-name,
+  .entity-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entity-value { max-width: 155px; }
+
+  /* Entity groups */
+  .entity-group {
+    border: 2px solid black;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 15px;
+    background: #fff;
+    position: relative;
+  }
+
+  .group-header {
+    position: absolute;
+    background: #fff;
+    padding: 0 4px;
+    z-index: 2;
+  }
+  .group-header span { color: inherit; }
+
+  .groups-layout .group-header {
+    top: 0;
+    transform: translateY(-50%);
+    line-height: 1;
+  }
+
+  .group-content {
+    margin-top: 8px;
+    gap: 20px;
+  }
+
+  .entity-card {
+    min-width: 100px;
+    margin: 0 auto;
+  }
+
+  .entity-header {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  /* Groups layout */
+  .groups-layout .free-layout-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 5px;
+    grid-auto-flow: dense;
+  }
+  .groups-layout .free-layout-container .group-content {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    align-items: center;
+  }
+
+  /* List layout */
+  .list-layout .free-layout-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 5px;
+    width: 100%;
+  }
+
+  .list-layout .free-layout-container .entity-group {
+    width: max-content;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0 0 0 17px;
+    margin: 0;
+    grid-column: span 2;
+  }
+
+  .list-layout .free-layout-container .group-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    position: static;
+    background: none;
+    padding: 0;
+  }
+
+  .list-layout .free-layout-container .group-content {
+    display: grid;
+    width: 100%;
+    break-inside: avoid;
+    gap: 5px;
+  }
+
+  /* Dynamic grid columns */
+  .list-layout .free-layout-container.show-all .group-content { grid-template-columns: 1fr 28px auto auto; }
+  .list-layout .free-layout-container.hide-title .group-content { grid-template-columns: 28px auto auto; }
+  .list-layout .free-layout-container.hide-icon .group-content { grid-template-columns: 1fr auto auto; }
+  .list-layout .free-layout-container.hide-title.hide-icon .group-content { grid-template-columns: auto auto; }
+
+  .list-layout .free-layout-container .entity-list-row { display: contents; }
+
+  .list-layout .free-layout-container .entity-list-row .entity-name {
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: left;
+    align-self: center;
+  }
+
+  .list-layout .free-layout-container .entity-list-row .entity-icon {
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    align-items: center;
+  }
+
+  .list-layout .free-layout-container .entity-list-row .entity-value {
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: left;
+    align-self: center;
+  }
+
+  /* Grid column assignments */
+  .list-layout .free-layout-container.show-all .group-content .entity-name { grid-column: 1; }
+  .list-layout .free-layout-container.show-all .group-content .entity-icon { grid-column: 2; }
+  .list-layout .free-layout-container.show-all .group-content .entity-value { grid-column: 3; }
+  .list-layout .free-layout-container.hide-title .group-content .entity-icon { grid-column: 1; }
+  .list-layout .free-layout-container.hide-title .group-content .entity-value { grid-column: 2; }
+  .list-layout .free-layout-container.hide-icon .group-content .entity-name { grid-column: 1; }
+  .list-layout .free-layout-container.hide-icon .group-content .entity-value { grid-column: 2; }
+  .list-layout .free-layout-container.hide-title.hide-icon .group-content .entity-value { grid-column: 1; }
+
+  /* Mashup layouts */
+  .mashup--1Lx1R .free-layout-container,
+  .mashup--2x2 .free-layout-container {
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .free-layout-container.hide-title.hide-icon .entity-group {
+    grid-column: span 1;
+  }
+
+  /* Weather visualization */
+  .visualizations-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .weather-visualization {
+    grid-column: span 2 !important;
+    grid-row: span 2;
+    width: 100% !important;
+    min-width: 250px;
+    max-width: 380px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .groups-layout .scale-normal .weather-visualization, .groups-layout .scale-small .weather-visualization { grid-row: span 3; }
+
+  .groups-layout .scale-small .weather-visualization { grid-column: span 2; }
+
+  .weather-main-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .weather-details-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    border-left: 1px solid #000;
+    background: none;
+    height: max-content;
+  }
+
+  .weather-detail-icon {
+    filter: grayscale(1) contrast(1.2);
+  }
+
+  .weather-icon-small {
+    width: 45px; height: 45px;
+  }
+
+  .weather-icon-normal {
+    width: 56px; height: 56px;
+  }
+
+  .weather-icon-big {
+    width: 70px; height: 70px;
+  }
+
+  .scale-small .weather-detail-icon { width: 18px; height: 18px; }
+  .scale-normal .weather-detail-icon { width: 22px; height: 22px; }
+  .scale-big .weather-detail-icon { width: 28px; height: 28px; }
+
+  /* Weather forecast */
+  .weather-forecast {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+    overflow-x: auto;
+    padding: 8px 0;
+    justify-content: space-between;
+  }
+
+  .forecast-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+  }
+
+  .forecast-date {
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .forecast-icon {
+    filter: grayscale(1) contrast(1.2);
+  }
+
+  .forecast-temps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .forecast-temp-high {
+    font-weight: 600;
+  }
+
+  .forecast-temp-low {
+    opacity: 0.7;
+  }
+
+  .forecast-precip {
+    font-size: 0.85em;
+    text-align: center;
+  }
+`;
+
+// ---------------------------------------------------------------------------
+// Section 2: HomeAssistantRenderer class (verbatim from full.liquid)
+// ---------------------------------------------------------------------------
+
+class HomeAssistantRenderer {
+  constructor(containerId = 'root', configuration = {}) {
+    this.container = document.getElementById(containerId);
+    this.iconMap = this.createIconMap();
+    this.weatherIconMap = this.createWeatherIconMap();
+    this.layoutClass = (configuration.layout || 'groups') + '-layout';
+    this.pillPosition = configuration.pill_position || 'top';
+    this.showEntityTitle = configuration.show_entity_title !== undefined ? (configuration.show_entity_title === true || configuration.show_entity_title === 'true') : true;
+    this.showEntityIcon = configuration.show_entity_icon !== undefined ? (configuration.show_entity_icon === true || configuration.show_entity_icon === 'true') : true;
+    this.scale = configuration.scale || 'normal';
+    this.initScaleClasses();
+    this.init();
+  }
+
+  createWeatherVisualization(entity) {
+    const stateIcon = this.weatherIconMap[entity.state] || 'mdi:weather-partly-cloudy';
+    const iconUrl = `https://api.iconify.design/${stateIcon}.svg`;
+
+    const attrs = entity.attributes || {};
+    const temp = attrs.temperature;
+    const tempUnit = attrs.temperature_unit || '°C';
+
+    const valueClass = `value ${this.textClasses.entityValue}`;
+    const unitClass = `value ${this.textClasses.entityUnit}`;
+
+    const weatherDetails = [
+      { key: 'humidity', value: attrs.humidity, unit: '%', icon: 'mdi:water-percent', label: 'Humidity' },
+      { key: 'pressure', value: attrs.pressure, unit: attrs.pressure_unit || 'hPa', icon: 'mdi:gauge', label: 'Pressure' },
+      { key: 'wind_speed', value: attrs.wind_speed, unit: attrs.wind_speed_unit || 'km/h', icon: 'mdi:weather-windy', label: 'Wind' },
+      { key: 'cloud_coverage', value: attrs.cloud_coverage, unit: '%', icon: 'mdi:weather-cloudy', label: 'Clouds' },
+      { key: 'visibility', value: attrs.visibility, unit: attrs.visibility_unit || 'km', icon: 'mdi:eye', label: 'Visibility' }
+    ];
+
+    const detailsHtml = weatherDetails
+      .filter(detail => detail.value !== undefined)
+      .map(detail =>
+        `<div class="weather-detail"><img class="weather-detail-icon" src="https://api.iconify.design/${detail.icon}.svg" alt="${detail.label}"><span class="weather-detail-value ${valueClass}">${detail.value}<span class="${unitClass}">${detail.unit}</span></span></div>`
+      ).join('');
+
+    let forecastHtml = '';
+    if (entity.forecast && entity.forecast.length > 0) {
+      const forecastDays = entity.forecast.slice(0, 5).map(day => {
+        const dayIcon = this.weatherIconMap[day.condition] || 'mdi:weather-partly-cloudy';
+        const dayIconUrl = `https://api.iconify.design/${dayIcon}.svg`;
+        const date = new Date(day.datetime);
+        const dayLetter = date.toLocaleDateString(undefined, { weekday: 'short' });
+        const temp = day.temperature !== undefined ? Math.round(day.temperature) : '';
+        const templow = day.templow !== undefined ? Math.round(day.templow) : undefined;
+        const precip = day.precipitation !== undefined ? Math.round(day.precipitation) : undefined;
+        return `
+          <div class="forecast-day">
+            <div class="forecast-date">${dayLetter}</div>
+            <img class="forecast-icon ${this.weatherClasses.forecastIcon}" src="${dayIconUrl}" alt="${day.condition}">
+            <div class="forecast-temps">
+              <span class="value value--small forecast-temp-high">${temp}°</span>
+              ${templow !== undefined ? `<span class="value value--small forecast-temp-low">${templow}°</span>` : ''}
+            </div>
+            ${precip !== undefined && precip > 0 ? `<span>${precip}${attrs.precipitation_unit || 'mm'}</span>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      forecastHtml = `
+        <div class="weather-forecast">
+          ${forecastDays}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="entity-group weather-visualization">
+        <div class="weather-main-row">
+          <img class="${this.weatherClasses.weatherIcon}" src="${iconUrl}" alt="${entity.state}">
+          <span class="value ${this.weatherClasses.weatherValue}">${temp !== undefined ? temp + tempUnit : ''}</span>
+        </div>
+        <div class="weather-details-row">
+          ${detailsHtml}
+        </div>
+        ${forecastHtml}
+      </div>
+    `;
+  }
+
+  initScaleClasses() {
+    const scaleConfig = {
+      small: {
+        pillValue: 'value--xxsmall',
+        entityValue: 'value--xsmall',
+        entityUnit: 'value--xxsmall',
+        deviceClass: 'value--xxsmall',
+        groupHeader: 'value--xsmall',
+        entityName: 'value--xxsmall',
+        iconSize: '20px',
+      },
+      normal: {
+        pillValue: 'value--xsmall',
+        entityValue: 'value--small',
+        entityUnit: 'value--xsmall',
+        deviceClass: 'value--xsmall',
+        groupHeader: 'value--small',
+        entityName: 'value--xsmall',
+        iconSize: '25px',
+      },
+      big: {
+        pillValue: 'value--small',
+        entityValue: 'value--regular',
+        entityUnit: 'value--small',
+        deviceClass: 'value--small',
+        groupHeader: 'value--medium',
+        entityName: 'value--small',
+        iconSize: '30px',
+      }
+    };
+
+    const weatherScale = {
+      small: {
+        weatherIcon: 'weather-icon-small',
+        weatherValue: 'value--regular',
+        forecastIcon: 'weather-icon-small',
+        forecastValue: 'value--regular'
+      },
+      normal: {
+        weatherIcon: 'weather-icon-normal',
+        weatherValue: 'value--large',
+        forecastIcon: 'weather-icon-small',
+        forecastValue: 'value--regular'
+      },
+      big: {
+        weatherIcon: 'weather-icon-big',
+        weatherValue: 'value--xlarge',
+        forecastIcon: 'weather-icon-small',
+        forecastValue: 'value--regular'
+      }
+    };
+
+    this.textClasses = scaleConfig[this.scale] || scaleConfig.normal;
+    this.weatherClasses = weatherScale[this.scale] || weatherScale.normal;
+  }
+
+  init() {
+    if (!this.container) {
+      return;
+    }
+    this.container.className = `app-root ${this.layoutClass}`;
+  }
+
+  createIconMap() {
+    return {
+      'light': 'mdi:lightbulb',
+      'switch': 'mdi:toggle-switch',
+      'sensor': 'mdi:chart-line',
+      'climate': 'mdi:thermostat',
+      'cover': 'mdi:window-shutter',
+      'fan': 'mdi:fan',
+      'lock': 'mdi:lock',
+      'media_player': 'mdi:speaker',
+      'camera': 'mdi:camera',
+      'alarm_control_panel': 'mdi:security',
+      'automation': 'mdi:cog',
+      'script': 'mdi:script-text',
+      'scene': 'mdi:palette',
+      'input_boolean': 'mdi:checkbox-marked',
+      'input_number': 'mdi:numeric',
+      'input_select': 'mdi:format-list-bulleted',
+      'input_text': 'mdi:form-textbox',
+      'timer': 'mdi:timer',
+      'counter': 'mdi:counter',
+      'person': 'mdi:account',
+      'device_tracker': 'mdi:map-marker',
+      'zone': 'mdi:map',
+      'sun': 'mdi:weather-sunny',
+      'weather': 'mdi:weather-partly-cloudy',
+      'conversation': 'mdi:message-text',
+      'notify': 'mdi:bell',
+      'tts': 'mdi:volume-high',
+      'group': 'mdi:account-group',
+      'homeassistant': 'mdi:home-assistant',
+      'temperature': 'mdi:thermometer',
+      'humidity': 'mdi:water-percent',
+      'pressure': 'mdi:gauge',
+      'battery': 'mdi:battery',
+      'illuminance': 'mdi:brightness-6',
+      'motion': 'mdi:motion-sensor',
+      'door': 'mdi:door',
+      'window': 'mdi:window-closed',
+      'smoke': 'mdi:smoke-detector',
+      'gas': 'mdi:gas-cylinder',
+      'power': 'mdi:flash',
+      'energy': 'mdi:lightning-bolt',
+      'current': 'mdi:current-ac',
+      'voltage': 'mdi:sine-wave',
+      'frequency': 'mdi:waveform',
+      'signal_strength': 'mdi:signal',
+      'connectivity': 'mdi:wifi',
+      'co2': 'mdi:molecule-co2',
+      'pm25': 'mdi:air-filter',
+      'default': 'mdi:information',
+      'error': 'mdi:alert-circle',
+      'unknown': 'mdi:help-circle'
+    };
+  }
+
+  createWeatherIconMap() {
+    return {
+      'clear-night': 'mdi:weather-night',
+      'cloudy': 'mdi:weather-cloudy',
+      'fog': 'mdi:weather-fog',
+      'hail': 'mdi:weather-hail',
+      'lightning': 'mdi:weather-lightning',
+      'lightning-rainy': 'mdi:weather-lightning-rainy',
+      'partlycloudy': 'mdi:weather-partly-cloudy',
+      'pouring': 'mdi:weather-pouring',
+      'rainy': 'mdi:weather-rainy',
+      'snowy': 'mdi:weather-snowy',
+      'snowy-rainy': 'mdi:weather-snowy-rainy',
+      'sunny': 'mdi:weather-sunny',
+      'windy': 'mdi:weather-windy',
+      'windy-variant': 'mdi:weather-windy-variant',
+      'exceptional': 'mdi:alert'
+    };
+  }
+
+  getEntityIcon(entity) {
+    if (!entity.attributes) {
+      return;
+    }
+    if (entity.attributes.icon) {
+      return entity.attributes.icon;
+    }
+    if (entity.error) {
+      return this.iconMap.error;
+    }
+
+    const entityId = entity.entity_id || '';
+    const domain = entityId.split('.')[0];
+    const deviceClass = entity.attributes?.device_class;
+
+    if (deviceClass && this.iconMap[deviceClass]) {
+      return this.iconMap[deviceClass];
+    }
+
+    if (domain && this.iconMap[domain]) {
+      return this.iconMap[domain];
+    }
+
+    return this.iconMap.default;
+  }
+
+  getEntityName(entity) {
+    if (entity.error) {
+      return 'Error';
+    }
+
+    return entity.attributes?.friendly_name || entity.entity_id || 'Unknown Entity';
+  }
+
+  getDeviceClassTitle(entity) {
+    if (entity.error) {
+      return null;
+    }
+
+    const deviceClass = entity.attributes?.device_class ?? '';
+
+    return entity.attributes?.friendly_name ?? (deviceClass.charAt(0).toUpperCase() + deviceClass.slice(1).replace(/_/g, ' '));
+  }
+
+  formatEntityState(entity) {
+    if (entity.error) {
+      return {
+        value: entity.error,
+        unit: '',
+        isError: true,
+        isNumeric: false
+      };
+    }
+
+    const state = entity.state;
+    const unit = entity.attributes?.unit_of_measurement || '';
+
+    if (state === 'on' || state === 'off') {
+      return {
+        value: state.toUpperCase(),
+        unit: '',
+        isError: false,
+        isNumeric: false
+      };
+    }
+
+    if (!isNaN(state) && state !== '') {
+      const numValue = parseFloat(state);
+      return {
+        value: numValue % 1 === 0 ? numValue.toString() : numValue.toFixed(1),
+        unit: unit,
+        isError: false,
+        isNumeric: true
+      };
+    }
+
+    if (state && state.includes('T') && state.includes(':')) {
+      try {
+        const date = new Date(state);
+        return {
+          value: date.toLocaleString(),
+          unit: '',
+          isError: false,
+          isNumeric: false
+        };
+      } catch (e) {
+        // fall through
+      }
+    }
+
+    return {
+      value: state || 'N/A',
+      unit: unit,
+      isError: false,
+      isNumeric: false
+    };
+  }
+
+  getEntityIconClass(entity) {
+    if (entity.error) {
+      return 'entity-icon error';
+    }
+
+    const entityId = entity.entity_id || '';
+    const domain = entityId.split('.')[0];
+    const deviceClass = entity.attributes?.device_class;
+
+    const iconClass = deviceClass || domain || 'default';
+    return `entity-icon ${iconClass}`;
+  }
+
+  formatIconForUrl(iconName) {
+    if (!iconName) {
+      return 'mdi:help-circle';
+    }
+
+    if (iconName.includes(':')) {
+      return iconName;
+    }
+
+    if (iconName.startsWith('mdi-')) {
+      return iconName.replace('mdi-', 'mdi:');
+    }
+
+    return `mdi:${iconName}`;
+  }
+
+  createPill(entity) {
+    const name = this.getEntityName(entity);
+    const icon = entity.icon ?? this.getEntityIcon(entity);
+    const stateInfo = this.formatEntityState(entity);
+
+    const formattedIcon = this.formatIconForUrl(icon);
+    const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
+
+    return `
+      <div class="pill-component rounded--full" data-entity-id="${entity.entity_id || 'error'}">
+        <img class="image" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize}; height: ${this.textClasses.iconSize};" onerror="this.style.display='none'">
+        <span class="pill-value ${this.textClasses.pillValue} ${stateInfo.isNumeric ? 'value--tnums' : ''}">${stateInfo.value}${stateInfo.unit ? ' ' + stateInfo.unit : ''}</span>
+      </div>
+    `;
+  }
+
+  createEntityCard(entity, label) {
+    const name = this.getEntityName(entity);
+    const icon = entity.icon ?? this.getEntityIcon(entity);
+    const iconClass = this.getEntityIconClass(entity);
+    const stateInfo = this.formatEntityState(entity);
+    const deviceClassTitle = this.showEntityTitle ? this.getDeviceClassTitle(entity) : '';
+
+    const baseCardClass = entity.error ? 'entity-card error' : 'entity-card';
+
+    const formattedIcon = this.formatIconForUrl(icon);
+    const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
+
+    return `
+      <div class="${baseCardClass}" data-entity-id="${entity.entity_id || 'error'}" data-label="${label}">
+        ${deviceClassTitle ? `<div class="device-class-title value ${this.textClasses.deviceClass}">${deviceClassTitle}</div>` : ''}
+        <div class="entity-header">
+          ${this.showEntityIcon ? `<img class="image ${iconClass}" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize};" onerror="this.style.display='none'">` : ''}
+          <div class="entity-value value ${this.textClasses.entityValue} ${stateInfo.isNumeric ? 'value--tnums' : ''} ${stateInfo.isError ? 'entity-error' : ''}">
+            ${stateInfo.value}
+            ${stateInfo.unit ? `<span class="entity-unit value ${this.textClasses.entityUnit}">${stateInfo.unit}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  createPillsContainer(pills) {
+    if (!pills || pills.length === 0) {
+      return '';
+    }
+
+    const allPills = pills.map(pill => this.createPill(pill));
+
+    if (allPills.length === 0) {
+      return '';
+    }
+
+    let flexClass = '';
+    switch (this.pillPosition) {
+      case 'top':
+        flexClass = 'flex flex--row flex--center-x flex--top';
+        break;
+      case 'bottom':
+        flexClass = 'flex flex--row flex--center-x flex--bottom';
+        break;
+      case 'left':
+        flexClass = 'flex flex--col flex--left flex--center-y';
+        break;
+      case 'right':
+        flexClass = 'flex flex--col flex--right flex--center-y';
+        break;
+      default:
+        flexClass = 'flex flex--row flex--center-x flex--top';
+    }
+    return `
+      <div class="pills-container pills-container--${this.pillPosition} ${flexClass} gap">
+        ${allPills.join('')}
+      </div>
+    `;
+  }
+
+  createEntitySection({ entities, groupName }) {
+    if (this.layoutClass === 'list-layout') {
+      const entityRows = entities.map(entity => {
+        const name = this.getEntityName(entity);
+        const icon = entity.icon ?? this.getEntityIcon(entity);
+        const iconClass = this.getEntityIconClass(entity);
+        const stateInfo = this.formatEntityState(entity);
+        const formattedIcon = this.formatIconForUrl(icon);
+        const iconUrl = `https://api.iconify.design/${formattedIcon}.svg`;
+        return `
+          <div class="entity-list-row" data-entity-id="${entity.entity_id || 'error'}">
+            ${this.showEntityTitle ? `<span class="entity-name value ${this.textClasses.entityName}">${name}</span>` : ''}
+            ${this.showEntityIcon ? `<img class="entity-icon ${iconClass}" src="${iconUrl}" alt="${name}" style="width: ${this.textClasses.iconSize}; height: ${this.textClasses.iconSize};" onerror="this.style.display='none'">` : ''}
+            <span class="entity-value value ${this.textClasses.entityValue} ${stateInfo.isNumeric ? 'value--tnums' : ''}">${stateInfo.value}</span>
+            <span class="enitity-unit value ${this.textClasses.entityUnit}">${stateInfo.unit}</span>
+          </div>
+        `;
+      });
+
+      return `
+        <div class="entity-group" data-label="${groupName}">
+          <div class="group-header">
+            ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
+          </div>
+          <div class="group-content">
+            ${entityRows.join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      const entitiesHtml = entities
+        .map(entity => this.createEntityCard(entity, groupName))
+        .join('');
+      return `
+        <div class="entity-group" style="grid-column: span ${entities.length} !important;" data-label="${groupName}">
+          <div class="group-header">
+            ${groupName ? `<span class="value ${this.textClasses.groupHeader}">${groupName}</span>` : ''}
+          </div>
+          <div class="group-content grid grid--wrap grid--min-56 entities-grid">
+            ${entitiesHtml}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  render(webhookData) {
+    if (!this.container) {
+      return;
+    }
+
+    this.container.innerHTML = '';
+
+    const { groups, pills, visualizations } = webhookData || {};
+
+    if (!visualizations?.length && !groups?.length && !pills?.length ) {
+      this.renderEmptyState();
+      return;
+    }
+
+    const pillsHtml = this.createPillsContainer(pills);
+
+    let mainContentHtml = '';
+
+    let vizSections = [];
+    if (visualizations?.length > 0) {
+      vizSections = visualizations.map((viz, i) => {
+        const domain = viz.entity_id.split('.')[0];
+        if (domain === 'weather') {
+          return this.createWeatherVisualization(viz, i);
+        } else {
+          return `<div class="visualization-container" data-viz-id="${viz.entity_id}"></div>`;
+        }
+      });
+    }
+
+    let sections = [];
+    if (groups.length > 0) {
+      sections = groups.map(group => {
+        return this.createEntitySection(group);
+      });
+    }
+
+    let showDetailsClass = 'show-all';
+    if (!this.showEntityTitle && !this.showEntityIcon) {
+      showDetailsClass = 'hide-title hide-icon';
+    } else if (!this.showEntityTitle) {
+      showDetailsClass = 'hide-title';
+    } else if (!this.showEntityIcon) {
+      showDetailsClass = 'hide-icon';
+    }
+
+    mainContentHtml += `<div class="free-layout-container scale-${this.scale} ${showDetailsClass}">${vizSections.join('')}${sections.join('')}</div>`;
+
+    if (pillsHtml) {
+      this.container.innerHTML = `
+        ${pillsHtml}
+        ${mainContentHtml}
+      `;
+    } else {
+      this.container.innerHTML = `
+        ${mainContentHtml}
+      `;
+    }
+  }
+
+  renderEmptyState() {
+    this.container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon value value--xxxlarge">⚠</div>
+        <h3 class="value value--large">No entities found</h3>
+        <p class="value value--small">Check your Home Assistant configuration and ensure entities are properly configured.</p>
+      </div>
+    `;
+  }
+
+  updateEntity(entityId, newData) {
+    const card = this.container.querySelector(`[data-entity-id="${entityId}"]`);
+    if (card) {
+      const label = card.getAttribute('data-label');
+      card.outerHTML = this.createEntityCard(newData, label);
+    }
+  }
+
+  refresh(responsesByLabel, pillsByLabel) {
+    this.render(responsesByLabel, pillsByLabel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Section 3: Liquid template generator
+// ---------------------------------------------------------------------------
+
+const TITLE_BAR_SVG = `<svg class="image" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 240 240" fill="none">
+      <path d="M240 224.762C240 233.012 233.25 239.762 225 239.762H15C6.75 239.762 0 233.012 0 224.762V134.762C0 126.512 4.77 114.993 10.61 109.153L109.39 10.3725C115.22 4.5425 124.77 4.5425 130.6 10.3725L229.39 109.162C235.22 114.992 240 126.522 240 134.772V224.772V224.762Z" fill="#F2F4F9"/>
+      <path d="M229.39 109.153L130.61 10.3725C124.78 4.5425 115.23 4.5425 109.4 10.3725L10.61 109.153C4.78 114.983 0 126.512 0 134.762V224.762C0 233.012 6.75 239.762 15 239.762H107.27L66.64 199.132C64.55 199.852 62.32 200.262 60 200.262C48.7 200.262 39.5 191.062 39.5 179.762C39.5 168.462 48.7 159.262 60 159.262C71.3 159.262 80.5 168.462 80.5 179.762C80.5 182.092 80.09 184.322 79.37 186.412L111 218.042V102.162C104.2 98.8225 99.5 91.8425 99.5 83.7725C99.5 72.4725 108.7 63.2725 120 63.2725C131.3 63.2725 140.5 72.4725 140.5 83.7725C140.5 91.8425 135.8 98.8225 129 102.162V183.432L160.46 151.972C159.84 150.012 159.5 147.932 159.5 145.772C159.5 134.472 168.7 125.272 180 125.272C191.3 125.272 200.5 134.472 200.5 145.772C200.5 157.072 191.3 166.272 180 166.272C177.5 166.272 175.12 165.802 172.91 164.982L129 208.892V239.772H225C233.25 239.772 240 233.022 240 224.772V134.772C240 126.522 235.23 115.002 229.39 109.162V109.153Z" fill="#000"/>
+    </svg>`;
+
+function generateLiquidTemplate() {
+  const rendererSource = HomeAssistantRenderer.toString();
+
+  return `<style>
+${TRMNL_CSS}
+</style>
+
+<div class="layout">
+  <script>
+
+${rendererSource}
+
+function initializeHomeAssistantRenderer() {
+  try {
+    const webhookData = {
+      groups: {{ groups | json }},
+      pills: {{ pills | json }},
+      visualizations: {{ visualizations | json }},
+      configuration: {{ configuration | json }}
+    };
+
+    if (!webhookData) {
+      throw new Error('No webhook data received. Please ensure the HACS TRMNL Dashboard integration is properly configured and sending data.');
+    }
+
+    const rootElement = document.getElementById('root');
+    if (!rootElement) {
+      return;
+    }
+
+    const renderer = new HomeAssistantRenderer('root', webhookData.configuration || {});
+    renderer.render(webhookData);
+  } catch (error) {
+    console.error('Error initializing renderer:', error);
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.innerHTML = \`
+        <div style="padding: 20px; text-align: center;">
+          <h3 class="value value--large">\\u274c Error Loading Home Assistant Data</h3>
+          <p class="value value--small">Please check the browser console for details.</p>
+          <pre class="value value--small" style="background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; text-align: left; overflow: auto;">\\\${error.message}</pre>
+        </div>
+      \`;
+    }
+  }
+}
+  </script>
+
+  <div id="root"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        initializeHomeAssistantRenderer();
+
+        if (window.trmnl) {
+          window.trmnl.ready();
+        } else {
+          document.dispatchEvent(new CustomEvent('trmnl-ready'));
+          window.trmnlReady = true;
+        }
+      } catch (error) {
+        if (window.trmnl) {
+          window.trmnl.ready();
+        } else {
+          document.dispatchEvent(new CustomEvent('trmnl-ready'));
+          window.trmnlReady = true;
+        }
+      }
+    });
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(() => {
+        try {
+          initializeHomeAssistantRenderer();
+
+          if (window.trmnl) {
+            window.trmnl.ready();
+          } else {
+            document.dispatchEvent(new CustomEvent('trmnl-ready'));
+            window.trmnlReady = true;
+          }
+        } catch (error) {
+          if (window.trmnl) {
+            window.trmnl.ready();
+          } else {
+            document.dispatchEvent(new CustomEvent('trmnl-ready'));
+            window.trmnlReady = true;
+          }
+        }
+      }, 100);
+    }
+  </script>
+</div>
+
+{% if configuration.show_title_bar != 'false' %}
+  <div class="title_bar">
+    ${TITLE_BAR_SVG}
+    <span class="title">Home Assistant Dashboard</span>
+  </div>
+{% endif %}
+`;
+}
+
+// ---------------------------------------------------------------------------
+// Section 4: TrmnlDashboardPanel custom element
+// ---------------------------------------------------------------------------
+
+const PANEL_CSS = `
+  :host {
+    display: block;
+    height: 100%;
+    background: #f5f5f5;
+  }
+  .panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar h2 {
+    margin: 0;
+    font-size: 20px;
+    flex: 1;
+  }
+  .toolbar button {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .toolbar button:hover {
+    background: #e8e8e8;
+  }
+  .toolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .payload-info {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+  }
+  .payload-info.over-limit {
+    color: #c00;
+    font-weight: 600;
+  }
+  .viewport-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: auto;
+  }
+  .viewport {
+    width: 800px;
+    height: 480px;
+    border: 2px solid #333;
+    background: #fff;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .error-msg {
+    color: #c00;
+    padding: 20px;
+    text-align: center;
+  }
+  .copy-feedback {
+    color: #080;
+    font-size: 13px;
+    transition: opacity 0.3s;
+  }
+`;
+
+class TrmnlDashboardPanel extends HTMLElement {
+  constructor() {
+    super();
+    this._hass = null;
+    this._rendered = false;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this._rendered) {
+      this._rendered = true;
+      this._render();
+      this._fetchPreview();
+    }
+  }
+
+  set panel(_panel) {
+    // required by HA, no action needed
+  }
+
+  _render() {
+    this.innerHTML = '';
+
+    const shadow = this.attachShadow({ mode: 'open' });
+
+    shadow.innerHTML = `
+      <style>${PANEL_CSS}</style>
+      <div class="panel-container">
+        <div class="toolbar">
+          <h2>TRMNL Dashboard Preview</h2>
+          <button id="refresh-btn">Refresh Preview</button>
+          <button id="copy-btn">Copy Template</button>
+          <span class="copy-feedback" id="copy-feedback"></span>
+          <span class="payload-info" id="payload-info"></span>
+        </div>
+        <div class="viewport-wrapper">
+          <div class="viewport">
+            <style>${TRMNL_CSS.replace(/#root/g, '#trmnl-preview-root')}</style>
+            <div id="trmnl-preview-root"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    shadow.getElementById('refresh-btn').addEventListener('click', () => this._fetchPreview());
+    shadow.getElementById('copy-btn').addEventListener('click', () => this._copyTemplate());
+  }
+
+  async _fetchPreview() {
+    const shadow = this.shadowRoot;
+    const btn = shadow.getElementById('refresh-btn');
+    const info = shadow.getElementById('payload-info');
+    const root = shadow.getElementById('trmnl-preview-root');
+
+    btn.disabled = true;
+    btn.textContent = 'Loading...';
+    info.textContent = '';
+    info.className = 'payload-info';
+
+    try {
+      const result = await this._hass.callWS({ type: 'trmnl_dashboard/get_preview' });
+      const { payload, payload_size, max_payload_bytes, tier } = result;
+
+      root.innerHTML = '';
+      const renderer = new HomeAssistantRenderer(null, payload.configuration);
+      renderer.container = root;
+      renderer.init();
+      renderer.render(payload);
+
+      const pct = Math.round((payload_size / max_payload_bytes) * 100);
+      info.textContent = `${payload_size.toLocaleString()} / ${max_payload_bytes.toLocaleString()} bytes (${tier} tier, ${pct}%)`;
+      if (payload_size > max_payload_bytes) {
+        info.className = 'payload-info over-limit';
+      }
+    } catch (err) {
+      root.innerHTML = `<div class="error-msg">Failed to load preview: ${err.message || err}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Refresh Preview';
+    }
+  }
+
+  async _copyTemplate() {
+    const shadow = this.shadowRoot;
+    const feedback = shadow.getElementById('copy-feedback');
+
+    try {
+      const template = generateLiquidTemplate();
+      await navigator.clipboard.writeText(template);
+      feedback.textContent = 'Copied!';
+      feedback.style.opacity = '1';
+      setTimeout(() => { feedback.style.opacity = '0'; }, 2000);
+    } catch (err) {
+      feedback.textContent = 'Copy failed';
+      feedback.style.opacity = '1';
+      setTimeout(() => { feedback.style.opacity = '0'; }, 2000);
+    }
+  }
+}
+
+customElements.define('trmnl-dashboard-panel', TrmnlDashboardPanel);
