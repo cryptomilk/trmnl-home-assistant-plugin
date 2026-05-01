@@ -2,6 +2,8 @@ import logging
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import DOMAIN
 from .webhook import TRMNL_TIERS
+from .api import async_register_api
+from .panel import async_setup_panel
 from .payload import build_webhook_payload, send_webhook_with_notification
 
 _LOGGER = logging.getLogger(__name__)
@@ -10,6 +12,9 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["entry"] = entry
+
+    await async_setup_panel(hass)
+    async_register_api(hass)
 
     def get_merged_config():
         merged = dict(entry.data)
