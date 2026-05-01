@@ -243,13 +243,9 @@ const TRMNL_CSS = `
     align-items: center;
     gap: 6px;
     padding: 2px 6px;
-    border-left: 1px solid #000;
+    border-left: 2px solid #000;
     background: none;
     height: max-content;
-  }
-
-  .weather-detail-icon {
-    filter: grayscale(1) contrast(1.2);
   }
 
   .weather-icon-small {
@@ -272,7 +268,7 @@ const TRMNL_CSS = `
   .weather-forecast {
     display: flex;
     flex-direction: row;
-    gap: 1px;
+    gap: 2px;
     overflow-x: auto;
     padding: 8px 0;
     justify-content: space-between;
@@ -291,10 +287,6 @@ const TRMNL_CSS = `
     white-space: nowrap;
   }
 
-  .forecast-icon {
-    filter: grayscale(1) contrast(1.2);
-  }
-
   .forecast-temps {
     display: flex;
     flex-direction: column;
@@ -307,11 +299,11 @@ const TRMNL_CSS = `
   }
 
   .forecast-temp-low {
-    opacity: 0.7;
+    font-weight: 400;
   }
 
   .forecast-precip {
-    font-size: 0.85em;
+    font-size: 0.8em;
     text-align: center;
   }
 `;
