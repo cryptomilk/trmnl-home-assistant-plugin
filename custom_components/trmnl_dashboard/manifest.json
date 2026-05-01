@@ -3,7 +3,7 @@
   "name": "TRMNL Dashboard",
   "codeowners": ["@pwojtaszko"],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["http", "panel_custom", "websocket_api"],
   "documentation": "https://github.com/pwojtaszko/trmnl-home-assistant-plugin",
   "integration_type": "service",
   "iot_class": "cloud_push",
